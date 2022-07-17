@@ -8,6 +8,9 @@ namespace MikuBot.Modules
 	{
 		public override void HandleCommand(MsgCommand cmd, Bot bot)
 		{
+			if (!cmd.BotCommand.Is(Name, BotCommandMethod.Private))
+				return;
+
 			var receiver = new Receiver(bot.Writer, cmd.Sender.Nick);
 
 			if (!cmd.BotCommand.Params.HasParam(0))
@@ -15,9 +18,6 @@ namespace MikuBot.Modules
 				receiver.Notice("Your user level is '" + cmd.Sender.UserLevel + "'");
 				return;
 			}
-
-			if (!cmd.BotCommand.Is(Name, BotCommandMethod.Private))
-				return;
 
 			var key = cmd.BotCommand.Params[0];
 
