@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Windows.Forms;
+using System.Reflection;
 using MikuBot.Commands;
 using MikuBot.Modules;
 
@@ -60,7 +61,7 @@ namespace MikuBot.ExtraPlugins
 				var helpLink = bot.Config.HelpLink;
 				var helpText = !string.IsNullOrEmpty(helpLink) ? ", full help available at " + helpLink : string.Empty;
 
-				sender.Notice(string.Format("MikuBot v{0}{1}", Application.ProductVersion, helpText));
+				sender.Notice(string.Format("MikuBot v{0}{1}", FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).ProductVersion, helpText));
 				sender.Notice("A total of " + moduleManager.AllModules.Count() + " modules have been loaded. Shortcut key is " + bot.HighlightShortcut);
 				sender.Notice("Type 'HELP [command]' to get command-specific help.");
 				sender.Notice("Modules whose name is in parenthesis have been disabled.");

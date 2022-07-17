@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using MikuBot.Commands;
 using MikuBot.Modules;
@@ -16,22 +18,73 @@ namespace MikuBot.ExtraPlugins
 			return res;
 		}
 
+#if OS_WINDOWS
+		[DllImport("kernel32.dll")]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		static extern bool GetPhysicallyInstalledSystemMemory(out long TotalMemoryInKilobytes);
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+		private class MEMORYSTATUSEX
+		{
+			public uint dwLength;
+			public uint dwMemoryLoad;
+			public ulong ullTotalPhys;
+			public ulong ullAvailPhys;
+			public ulong ullTotalPageFile;
+			public ulong ullAvailPageFile;
+			public ulong ullTotalVirtual;
+			public ulong ullAvailVirtual;
+			public ulong ullAvailExtendedVirtual;
+
+			public MEMORYSTATUSEX()
+			{
+				this.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+			}
+		}
+
+		[return: MarshalAs(UnmanagedType.Bool)]
+		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		static extern bool GlobalMemoryStatusEx([In, Out]MEMORYSTATUSEX lpBuffer);
+#endif
+
 		private string MemoryString
 		{
 			get
 			{
-				var mgmt = new ManagementClass("Win32_ComputerSystem");
-				var obj = mgmt.GetInstances().Cast<ManagementObject>().FirstOrDefault();
-
-				if (obj == null)
-					return "Unknown memory";
-
-				//var mobo = obj.Properties["Manufacturer"].Value + " " + obj.Properties["Model"].Value;
-
-				var compInfo = new Microsoft.VisualBasic.Devices.ComputerInfo();
-				var totalRam = long.Parse(compInfo.TotalPhysicalMemory.ToString()) / 1024 / 1024;
-				var freeRam = long.Parse(compInfo.AvailablePhysicalMemory.ToString()) / 1024 / 1024;
-
+				string freeRam = "unknown", totalRam = freeRam;
+#if OS_WINDOWS
+				var memStatus = new MEMORYSTATUSEX();
+				if (GlobalMemoryStatusEx(memStatus))
+				{
+					totalRam = (memStatus.ullTotalPhys / 1024 / 1024).ToString();
+					freeRam = (memStatus.ullAvailPhys / 1024 / 1024).ToString();
+				}
+#elif OS_LINUX
+				try
+				{
+					using (var sr = new StreamReader("/proc/meminfo"))
+					{
+						string? line;
+						line = sr.ReadLine();
+						while (line != null)
+						{
+							var fields = line.Split(':');
+							var item = fields[0];
+							switch (item)
+							{
+							case "MemTotal":
+								totalRam = (ulong.Parse(fields[1].Trim().Split(' ')[0]) / 1024).ToString();
+								break;
+							case "MemFree":
+								freeRam = (ulong.Parse(fields[1].Trim().Split(' ')[0]) / 1024).ToString();
+								break;
+							}
+							line = sr.ReadLine();
+						}
+					}
+				} catch (Exception e) when (e is FileNotFoundException || e is IOException)
+				{}
+#endif
 				return "RAM: " + freeRam + "MB free, " + totalRam + " MB total";
 			}
 		}
@@ -42,16 +95,7 @@ namespace MikuBot.ExtraPlugins
 			{
 				var procCount = Environment.ProcessorCount;
 
-				var procInfo = "Unknown processor";
-
-				var mgmt = new ManagementClass("Win32_Processor");
-
-				var objCol = mgmt.GetInstances().Cast<ManagementObject>().FirstOrDefault();
-
-				if (objCol != null)
-				{
-					procInfo = CollapseWhitespace(objCol.Properties["Name"].Value.ToString());
-				}
+				var procInfo = "39000";
 
 				return procCount + "x " + procInfo;
 			}
@@ -88,7 +132,7 @@ namespace MikuBot.ExtraPlugins
 
 			bot.Writer.Msg(chat.ChannelOrSenderNick,
 				os + " " + arch
-				+ " | CLR " + clrVer
+				+ " | .NET Core " + clrVer
 				+ " | " + ProcString
 				+ " | " + MemoryString);
 		}

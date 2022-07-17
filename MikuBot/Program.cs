@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Configuration.Install;
 using System.Globalization;
 using System.Threading;
-using System.Windows.Forms;
+using System.Threading.Tasks;
 using log4net;
 using MikuBot.Services;
 
@@ -11,9 +10,9 @@ namespace MikuBot
 {
 	class Program
 	{
+		private static readonly string exnErr = "Unhandled exception";
 		private static readonly ILog log = LogManager.GetLogger(typeof(Program));
 		private static Bot bot;
-		private static MikuBotServiceHost serviceHost;
 
 		public static Bot Bot
 		{
@@ -25,36 +24,18 @@ namespace MikuBot
 			Thread.CurrentThread.Name = "Boot";
 			log4net.Config.XmlConfigurator.Configure();
 
-			if (args.Length >= 1 && args[0] == "/service")
-			{
-				var servName = args.Length >= 2 ? args[1] : "MikuBot";
-
-				log.Info("Running as service '" + servName + "'");
-
-				System.ServiceProcess.ServiceBase.Run(new WinService(servName));
-			}
-			else if (args.Length >= 1 && args[0] == "/install")
-			{
-				InstallService();
-			}
-			else
-			{
-				log.Info("Running in standalone mode.");
-				RunBot();
-			}
+			log.Info("Running in standalone mode.");
+			RunBot();
 		}
 
 		public static void RunBot()
 		{
-			Application.ApplicationExit += Application_ApplicationExit;
-			Application.ThreadException += Application_ThreadException;
+			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledException);
+			TaskScheduler.UnobservedTaskException += UnobservedTaskException;
 			if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
 				Thread.CurrentThread.Name = "Main";
 
 			var config = new Config();
-
-			if (config.EnableServices)
-				serviceHost = new MikuBotServiceHost();
 
 			try
 			{
@@ -69,45 +50,15 @@ namespace MikuBot
 			bot.Run();
 		}
 
-		private static void Application_ApplicationExit(object sender, System.EventArgs e)
+		private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
-			if (serviceHost != null)
-				serviceHost.Dispose();
+			var exn = new Exception(e.ExceptionObject.ToString());
+			log.Fatal(exnErr, exn);
 		}
 
-		private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+		private static void UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
 		{
-			log.Fatal("Unhandled exception", e.Exception);
-		}
-
-		private static AssemblyInstaller GetInstaller()
-		{
-			var installer = new AssemblyInstaller(
-				typeof(Program).Assembly, null);
-			installer.UseNewContext = true;
-			return installer;
-		}
-
-		private static void InstallService()
-		{
-			using (AssemblyInstaller installer = GetInstaller())
-			{
-				IDictionary state = new Hashtable();
-				try
-				{
-					installer.Install(state);
-					installer.Commit(state);
-				}
-				catch
-				{
-					try
-					{
-						installer.Rollback(state);
-					}
-					catch { }
-					throw;
-				}
-			}
+			log.Error(exnErr, e.Exception);
 		}
 	}
 }

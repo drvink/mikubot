@@ -7,6 +7,7 @@ using VocaDb.Model.DataContracts.Api;
 using VocaDb.Model.DataContracts.Artists;
 using VocaDb.Model.DataContracts.Songs;
 using VocaDb.Model.DataContracts.Tags;
+using VocaDb.NicoApi;
 
 namespace MikuBot.VocaDBConnector.Helpers
 {
@@ -87,12 +88,12 @@ namespace MikuBot.VocaDBConnector.Helpers
 			return string.Format("{0} - {1}", FormatSong(song), GetSongUrl(config, song.Id));
 		}
 
-		public static string FormatSongWithUrl(SongContract song, NicoApi.VideoDataResult nicoData, VocaDbConfig config, ClientType site = ClientType.VocaDb)
+		public static string FormatSongWithUrl(SongContract song, VideoDataResult nicoData, VocaDbConfig config, ClientType site = ClientType.VocaDb)
 		{
 			return string.Format("{0} - {1} - Nico video uploaded at {2} by {3}, {4} views",
 				FormatSong(song),
 				GetSongUrl(config, song.Id, site),
-				nicoData.Created.ToString("g"), nicoData.Author, nicoData.Views);
+				nicoData.UploadDate?.ToString("g"), nicoData.Author, nicoData.Views);
 		}
 
 		public static string FormatSongWithAlbumAndUrl(SongWithAlbumContract song, VocaDbConfig config, ClientType site = ClientType.VocaDb)
@@ -103,7 +104,7 @@ namespace MikuBot.VocaDBConnector.Helpers
 			return string.Format("{0} from album {1} - {2}", FormatSong(song), song.Album.Name, GetSongUrl(config, song.Id, site));
 		}
 
-		public static string FormatSongWithAlbumAndUrl(SongWithAlbumContract song, NicoApi.VideoDataResult nicoData, VocaDbConfig config, ClientType site = ClientType.VocaDb)
+		public static string FormatSongWithAlbumAndUrl(SongWithAlbumContract song, VideoDataResult nicoData, VocaDbConfig config, ClientType site = ClientType.VocaDb)
 		{
 			if (song.Album == null)
 				return FormatSongWithUrl(song, nicoData, config, site);
@@ -112,7 +113,7 @@ namespace MikuBot.VocaDBConnector.Helpers
 				FormatSong(song),
 				song.Album.Name,
 				GetSongUrl(config, song.Id, site),
-				nicoData.Created.ToString("g"), nicoData.Author, nicoData.Views);
+				nicoData.UploadDate?.ToString("g"), nicoData.Author, nicoData.Views);
 		}
 
 		public static string FormatTag(TagContract tag)

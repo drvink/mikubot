@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using MikuBot.DbModel.Services;
 using log4net;
 using MikuBot.Commands;
 using MikuBot.Modules;
-using System.Windows.Forms;
 using MikuBot.Security;
 
 namespace MikuBot
@@ -353,7 +354,7 @@ namespace MikuBot
 			//var linkFile = new LogFileLinkReader(DbPlugins.DbPluginsModule.Services, @"C:\Documents\mikuchan.log");
 			//linkFile.ReadLinks();
 
-			Console.WriteLine("MikuBot {0} starting up...", Application.ProductVersion);
+			Console.WriteLine("MikuBot {0} starting up...", FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).ProductVersion);
 
 			run = true;
 

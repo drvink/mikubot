@@ -13,8 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VocaDBConnector", "VocaVote
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbPlugins", "DbPlugins\DbPlugins.csproj", "{0A56310E-81C4-45E8-9217-55468FB6DD4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminModules", "HelpPrinter\AdminModules.csproj", "{D3C90CC8-8431-4F38-A192-E7DF1D132C82}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MikuBotDbModel", "MikuBotDbModel\MikuBotDbModel.csproj", "{E91B4F9E-D4F5-48CD-BEC7-00081E42E03D}"
 EndProject
 Global

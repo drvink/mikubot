@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
-using System.Windows.Forms;
 using MikuBot.Commands;
 using MikuBot.Modules;
 
@@ -36,7 +37,7 @@ namespace MikuBot.ExtraPlugins
 			if (!CheckCall(chat, bot))
 				return;
 
-			var msg = string.Format("MikuBot v{0}", Application.ProductVersion);
+			var msg = string.Format("MikuBot v{0}", FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).ProductVersion);
 
 			bot.Writer.Msg(chat.ChannelOrSenderNick, msg);
 		}

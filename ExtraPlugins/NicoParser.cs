@@ -4,12 +4,14 @@ using System.Xml.XPath;
 using MikuBot.Commands;
 using MikuBot.Helpers;
 using MikuBot.Modules;
-using NicoApi;
+using VocaDb.NicoApi;
 
 namespace MikuBot.ExtraPlugins
 {
 	public class NicoParser : MsgCommandModuleBase
 	{
+		private readonly NicoApiClient client = new NicoApiClient();
+
 		public static string GetNodeTextOrEmpty(XElement node)
 		{
 			if (node == null)
@@ -23,13 +25,13 @@ namespace MikuBot.ExtraPlugins
 			return GetNodeTextOrEmpty(doc.XPathSelectElement(xpath));
 		}
 
-		private void GetVideoData(Receiver receiver, string id)
+		private async void GetVideoData(Receiver receiver, string id)
 		{
 			VideoDataResult data;
 
 			try
 			{
-				data = VideoApiClient.GetVideoData(id, true);
+				data = await client.GetTitleAPIAsync(id);
 			}
 			catch (NicoApiException x)
 			{
@@ -38,7 +40,7 @@ namespace MikuBot.ExtraPlugins
 			}
 
 			receiver.Msg(string.Format("NicoVideo: {0}{1}{0} at {2} by {3}, {4} views",
-				Formatting.Bold, data.Title, data.Created, data.Author, data.Views));
+				Formatting.Bold, data.Title, data.UploadDate, data.Author, data.Views));
 		}
 
 		public override string HelpText

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Windows.Forms;
+using System.Reflection;
 using MikuBot.Commands;
 using MikuBot.Modules;
 
@@ -61,7 +62,7 @@ namespace MikuBot.ExtraPlugins
 				var helpText = !string.IsNullOrEmpty(helpLink) ? ", full help available at " + helpLink : string.Empty;
 
 				var msg = string.Format("MikuBot v{0}, {1} modules{2}",
-					Application.ProductVersion, moduleManager.AllModules.Count(), helpText);
+					FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).ProductVersion, moduleManager.AllModules.Count(), helpText);
 
 				var commandModules = moduleManager.BuiltinModules.Concat(moduleManager.MsgCommandModules.Where(m => !m.IsPassive)).OrderBy(c => c.Name);
 

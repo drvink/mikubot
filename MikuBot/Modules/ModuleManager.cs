@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -237,6 +238,7 @@ namespace MikuBot.Modules
 
 			genericModules.Clear();
 			msgCommandModules.Clear();
+			var modulePath = Process.GetCurrentProcess().MainModule.FileName;
 
 			foreach (var moduleFile in moduleFiles)
 			{
@@ -244,7 +246,9 @@ namespace MikuBot.Modules
 
 				try
 				{
-					byte[] assemblyBytes = File.ReadAllBytes(moduleFile);
+					var dir = Path.Combine(modulePath, "..");
+					var path = Path.Combine(dir, moduleFile);
+					byte[] assemblyBytes = File.ReadAllBytes(path);
 					assembly = Assembly.Load(assemblyBytes);
 					//assembly = Assembly.LoadFrom(moduleFile);
 				}

@@ -5,11 +5,14 @@ using MikuBot.Modules;
 using MikuBot.VocaDBConnector.Helpers;
 using VocaDb.Model.DataContracts.Songs;
 using VocaDb.Model.Domain.PVs;
+using VocaDb.NicoApi;
 
 namespace MikuBot.VocaDBConnector
 {
 	public class PVVocaDBAdvertiser : MsgCommandModuleBase
 	{
+		private readonly NicoApiClient client = new NicoApiClient();
+
 		private VocaVoterConnectorFile connectorFile;
 
 		private async Task<SongWithAlbumContract> CallVocaDbAsync(PVService service, string pvId, ClientType clientType)
@@ -17,9 +20,9 @@ namespace MikuBot.VocaDBConnector
 			return await connectorFile.CallClientAsync(client => client.GetSongWithPVAsync(service, pvId), clientType);
 		}
 
-		private async Task<NicoApi.VideoDataResult> CallNicoAsync(string pvId)
+		private async Task<VideoDataResult> CallNicoAsync(string pvId)
 		{
-			return await Task.Run(() => NicoApi.VideoApiClient.GetVideoData(pvId, true));
+			return await Task.Run(() => client.GetTitleAPIAsync(pvId));
 		}
 
 		private async Task GetPvInfoAsync(Receiver receiver, IBotContext bot, PVService service, string pvId)
@@ -27,7 +30,7 @@ namespace MikuBot.VocaDBConnector
 			var vocaDbTask = CallVocaDbAsync(service, pvId, ClientType.VocaDb);
 			var utaiteDbTask = CallVocaDbAsync(service, pvId, ClientType.UtaiteDb);
 
-			NicoApi.VideoDataResult data = null;
+			VideoDataResult data = null;
 			if (service == PVService.NicoNicoDouga)
 			{
 				data = await CallNicoAsync(pvId);
@@ -47,7 +50,7 @@ namespace MikuBot.VocaDBConnector
 				else
 				{
 					receiver.Msg(string.Format("NicoVideo: {0}{1}{0} at {2} by {3}, {4} views",
-						Formatting.Bold, data.Title, data.Created.ToString("g"), data.Author, data.Views));
+						Formatting.Bold, data.Title, data.UploadDate?.ToString("g"), data.Author, data.Views));
 				}
 			}
 			else if (song != null)
